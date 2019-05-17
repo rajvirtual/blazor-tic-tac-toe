@@ -1,0 +1,229 @@
+﻿@page  "/game"
+
+@if (@playerWon != null)
+{
+    <div class="container h-100" style="width:600px;background:#14bdac;padding:40px">
+        <div class="row h-50 justify-content-center align-items-center">
+            <span style="font-size:xx-large">@playerWon Won !</span>
+        </div>
+    </div>
+}
+else if (@isDraw)
+{
+    <div class="container h-100" style="width:600px;background:#14bdac;padding:40px">
+        <div class="row h-50 justify-content-center align-items-center">
+            <span style="font-size:xx-large">It's a Draw !</span>
+        </div>
+    </div>
+}
+else if (@playerWon == null)
+{
+    <div class="container h-100" style="width:600px;background:#14bdac;padding:40px">
+        <div class="row h-50 justify-content-center align-items-center">
+            <div class="col-3 col-class text-center @HighLight(0)" onclick=@(() => CellClick(0, 0)) style="border-right:3px solid rgba(0,0,0,.54);border-bottom:3px solid rgba(0,0,0,.54)"><span class="@TextProps(0) @LineThru(0)" style="font-size:xx-large">@board[0]</span></div>
+            <div class="col-3 col-class text-center @HighLight(1)" onclick=@(() => CellClick(0, 1)) style="border-right:3px solid rgba(0,0,0,.54);border-left:3px solid rgba(0,0,0,.54);border-bottom:3px solid rgba(0,0,0,.54)"><span class="@TextProps(1) @LineThru(1)" style="font-size:xx-large">@board[1]</span></div>
+            <div class="col-3 col-class text-center @HighLight(2)" onclick=@(() => CellClick(0, 2)) style="border-left:3px solid rgba(0,0,0,.54);border-bottom:3px solid rgba(0,0,0,.54)"><span class="@TextProps(2) @LineThru(2)" style="font-size:xx-large">@board[2]</span></div>
+        </div>
+        <div class="row h-50 justify-content-center align-items-center">
+            <div class="col-3 col-class text-center @HighLight(3)" onclick=@(() => CellClick(1, 0)) style="border-top:3px solid rgba(0,0,0,.54);border-bottom:3px solid rgba(0,0,0,.54);border-right:3px solid rgba(0,0,0,.54)"><span class="@TextProps(3) @LineThru(3)" style="font-size:xx-large">@board[3]</span></div>
+            <div class="col-3 col-class text-center @HighLight(4)" onclick=@(() => CellClick(1, 1)) style="border:3px solid rgba(0,0,0,.54)"><span class="@TextProps(4) @LineThru(4)" style="font-size:xx-large;">@board[4]</span></div>
+            <div class="col-3 col-class text-center @HighLight(5)" onclick=@(() => CellClick(1, 2)) style="border-left:3px solid rgba(0,0,0,.54);border-bottom:3px solid rgba(0,0,0,.54);border-top:3px solid rgba(0,0,0,.54)"><span class="@TextProps(5) @LineThru(5)" style="font-size:xx-large">@board[5]</span></div>
+        </div>
+        <div class="row h-50 justify-content-center align-items-center">
+            <div class="col-3 col-class text-center @HighLight(6)" onclick=@(() => CellClick(2, 0)) style="border-right:3px solid rgba(0,0,0,.54);border-top:3px solid rgba(0,0,0,.54)"><span class="@TextProps(6) @LineThru(6)" style="font-size:xx-large">@board[6]</span></div>
+            <div class="col-3 col-class text-center @HighLight(7)" onclick=@(() => CellClick(2, 1)) style="border-right:3px solid rgba(0,0,0,.54);border-top:3px solid rgba(0,0,0,.54);border-left:3px solid rgba(0,0,0,.54)"><span class="@TextProps(7) @LineThru(7)" style="font-size:xx-large;">@board[7]</span></div>
+            <div class="col-3 col-class text-center @HighLight(8)" onclick=@(() => CellClick(2, 2)) style="border-left:3px solid rgba(0,0,0,.54);border-top:3px solid rgba(0,0,0,.54)"><span class="@TextProps(8) @LineThru(8)" style="font-size:xx-large">@board[8]</span></div>
+        </div>
+    </div>
+}
+<div class="text-center" style="padding:5px;">
+    <button class="btn btn-link" style="color:#14bdac;font-weight:600" onclick="@(()=>restart())">RESTART GAME</button>
+</div>
+
+@functions {
+    string playerWon = null;
+    List<int> results = new List<int>();
+    bool isDraw = false;
+    List<string> board = new List<string>();
+
+
+    private async void CellClick(int x, int y)
+    {
+        if (playerWon != null)
+        {
+            return;
+        }
+        int index = y + (x * 3);
+        if (string.IsNullOrEmpty(board[index]))
+        {
+            board[index] = "X";
+        }
+        else
+        {
+            return;
+        }
+
+        var res = checkWin();
+        if (res == null)
+        {
+            await Task.Delay(200);
+            SetNextMove();
+        }
+
+        if (res != null)
+        {
+            await Task.Delay(1000);
+            playerWon = res;
+        }
+
+        this.StateHasChanged();
+
+    }
+
+    private async void SetNextMove()
+    {
+        var freeCells = new List<int>();
+        for (int i = 0; i < board.Count(); i++)
+        {
+            if (board[i] == null)
+            {
+                freeCells.Add(i);
+            }
+
+        }
+        var rnd = new Random();
+        int r = rnd.Next(freeCells.Count());
+        var nextindex = freeCells[r];
+        board[nextindex] = "O";
+        var res = checkWin();
+
+        if (res != null)
+        {
+            await Task.Delay(2000);
+            playerWon = res;
+        }
+        this.StateHasChanged();
+    }
+
+    private void restart()
+    {
+        results = new List<int>
+    ();
+        playerWon = null;
+        isDraw = false;
+        for (var i = 0; i < 9; i++)
+        {
+            board[i] = null;
+        }
+        this.StateHasChanged();
+    }
+
+    private string HighLight(int index)
+    {
+        if (results.IndexOf(index) != -1)
+        {
+            return "highlight";
+        }
+        return "dummy";
+
+    }
+
+    private string TextProps(int index)
+    {
+        if (board[index] == "O")
+        {
+            return "text-color-white";
+        }
+        else
+        {
+            return "text-color-blk";
+        }
+
+    }
+
+    private string LineThru(int index)
+    {
+        if (results.IndexOf(index) != -1)
+        {
+            return "line-through";
+        }
+        return "dummy";
+    }
+
+    private string checkWin()
+    {
+        results.Clear();
+        if (board[0] != null && board[0] == board[1] && board[1] == board[2])
+        {
+            results.Add(0);
+            results.Add(1);
+            results.Add(2);
+            return board[0];
+        }
+        if (board[3] != null && board[3] == board[4] && board[4] == board[5])
+        {
+            results.Add(3);
+            results.Add(4);
+            results.Add(5);
+            return board[3];
+        }
+        if (board[6] != null && board[6] == board[7] && board[7] == board[8])
+        {
+            results.Add(6);
+            results.Add(7);
+            results.Add(8);
+            return board[6];
+        }
+        if (board[0] != null && board[0] == board[4] && board[4] == board[8])
+        {
+            results.Add(0);
+            results.Add(4);
+            results.Add(8);
+            return board[8];
+        }
+        if (board[2] != null && board[2] == board[4] && board[4] == board[6])
+        {
+            results.Add(2);
+            results.Add(4);
+            results.Add(6);
+            return board[6];
+        }
+        if (board[0] != null && board[0] == board[3] && board[0] == board[6])
+        {
+            results.Add(0);
+            results.Add(3);
+            results.Add(6);
+            return board[0];
+        }
+        if (board[1] != null && board[1] == board[4] && board[1] == board[7])
+        {
+            results.Add(1);
+            results.Add(4);
+            results.Add(7);
+            return board[1];
+        }
+        if (board[2] != null && board[2] == board[5] && board[2] == board[8])
+        {
+            results.Add(2);
+            results.Add(5);
+            results.Add(8);
+            return board[8];
+        }
+        if (board.Where(c => c == null).Count() == 0)
+        {
+            isDraw = true;
+        }
+        this.StateHasChanged();
+        return null;
+    }
+
+
+    protected override void OnInit()
+    {
+        for (var i = 0; i < 9; i++)
+        {
+            board.Add(null);
+        }
+    }
+
+}
